@@ -1,0 +1,864 @@
+Here is a complete, fully functional single-file website for **Spicy Foods** – a restaurant with over 120 unique items, working images (using reliable Unsplash static URLs + fallbacks), admin login, INR currency, cart, happy hour timer, WhatsApp order, and many more features.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Spicy Foods | 120+ Unique Burgers, Wings & More</title>
+  <!-- Google Fonts + Font Awesome 6 + Chart.js -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #fefaf5;
+      color: #1e1e2a;
+      scroll-behavior: smooth;
+    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1e8e0; }
+    ::-webkit-scrollbar-thumb { background: #e67e22; border-radius: 10px; }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 248, 240, 0.96);
+      backdrop-filter: blur(12px);
+      padding: 0.9rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    .logo h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #d35400, #e67e22);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    .logo span { font-size: 0.8rem; color: #b45f2b; display: block; }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .nav-links a {
+      text-decoration: none;
+      font-weight: 600;
+      color: #2c2c2e;
+      transition: 0.2s;
+      cursor: pointer;
+    }
+    .nav-links a:hover, .nav-links a.active { color: #e67e22; }
+    .cart-icon {
+      position: relative;
+      cursor: pointer;
+      font-size: 1.6rem;
+    }
+    .cart-count {
+      position: absolute;
+      top: -8px;
+      right: -12px;
+      background: #e67e22;
+      color: white;
+      font-size: 0.7rem;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero {
+      background: linear-gradient(107deg, #2b1e12, #3a281b), url('https://images.unsplash.com/photo-1550317138-10000687a72b?q=80&w=2070&auto=format');
+      background-blend-mode: overlay;
+      background-size: cover;
+      background-attachment: fixed;
+      padding: 5rem 2rem;
+      text-align: center;
+      color: white;
+    }
+    .hero h2 { font-size: 3.2rem; font-weight: 800; }
+    .hero p { font-size: 1.2rem; max-width: 600px; margin: 1rem auto; }
+    .btn-primary {
+      background: #e67e22;
+      border: none;
+      padding: 0.9rem 2rem;
+      font-weight: 700;
+      border-radius: 40px;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-primary:hover { background: #cf711f; transform: scale(0.98); }
+    .page-section { display: none; padding: 4rem 2rem; max-width: 1300px; margin: 0 auto; }
+    .page-section.active { display: block; }
+    .section-title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      margin-bottom: 2rem;
+      border-left: 7px solid #e67e22;
+      padding-left: 1.2rem;
+    }
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.05);
+      transition: 0.3s;
+    }
+    .card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px rgba(0,0,0,0.1); }
+    .card-img { height: 180px; width: 100%; object-fit: cover; background: #f0e2d6; }
+    .card-content { padding: 1.2rem; }
+    .card-title {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+    .price { color: #e67e22; font-weight: 800; }
+    .desc { font-size: 0.8rem; color: #5a5a66; margin: 0.5rem 0 1rem; }
+    .btn-add {
+      background: #f5e7de;
+      border: none;
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 40px;
+      font-weight: 700;
+      color: #c25d1a;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-add:hover { background: #e67e22; color: white; }
+    .stats-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 60px;
+      padding: 1.2rem 1.8rem;
+      text-align: center;
+      min-width: 150px;
+    }
+    .stat-number { font-size: 2rem; font-weight: 800; color: #e67e22; }
+    .timer-bar {
+      background: #2c1e12;
+      border-radius: 60px;
+      padding: 0.5rem 1.2rem;
+      display: inline-flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .timer-box { background: #00000066; padding: 4px 12px; border-radius: 40px; }
+    .testi-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+    }
+    .testi-card {
+      background: white;
+      border-radius: 32px;
+      padding: 1.5rem;
+      max-width: 320px;
+      border: 1px solid #ffefe2;
+    }
+    .stars { color: #f39c12; margin-bottom: 0.5rem; }
+    .contact-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      background: white;
+      border-radius: 36px;
+      padding: 2rem;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+    }
+    .contact-form { flex: 1.2; }
+    .info-hours { flex: 0.8; background: #fef3ea; border-radius: 28px; padding: 1.5rem; }
+    input, textarea {
+      width: 100%;
+      padding: 0.8rem;
+      border-radius: 28px;
+      border: 1px solid #e2dcd5;
+      margin-bottom: 12px;
+    }
+    .footer {
+      background: #1e1712;
+      color: #d6cdc4;
+      text-align: center;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+    .newsletter {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 1rem auto;
+      max-width: 400px;
+    }
+    .newsletter input { background: #2e2520; border: none; color: white; }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      max-width: 550px;
+      width: 90%;
+      border-radius: 32px;
+      padding: 1.5rem;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      font-size: 1.5rem;
+      border-bottom: 2px solid #f0e2d6;
+      margin-bottom: 1rem;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #eee;
+    }
+    .cart-qty { display: flex; gap: 8px; align-items: center; }
+    .qty-btn {
+      background: #f0e2d6;
+      border: none;
+      width: 28px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    .total-row {
+      font-weight: 800;
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+    }
+    .checkout-btn {
+      background: #e67e22;
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.7rem;
+      border-radius: 40px;
+      color: white;
+      border: none;
+      font-weight: bold;
+    }
+    .login-modal {
+      display: flex;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(10px);
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .login-box {
+      background: white;
+      border-radius: 48px;
+      padding: 2rem;
+      width: 350px;
+      text-align: center;
+      animation: slideUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .login-box h2 { color: #e67e22; margin-bottom: 1.5rem; }
+    .login-box input {
+      width: 100%;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border-radius: 40px;
+      border: 1px solid #ddd;
+    }
+    .login-box button { width: 100%; }
+    .error-msg { color: red; margin-top: 0.5rem; font-size: 0.8rem; }
+    .admin-stats {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .admin-card {
+      background: white;
+      border-radius: 28px;
+      padding: 1.2rem;
+      flex: 1;
+      text-align: center;
+    }
+    .admin-card .value { font-size: 2rem; font-weight: 800; color: #e67e22; }
+    .edit-btn {
+      background: #e67e22;
+      border: none;
+      padding: 0.2rem 1rem;
+      border-radius: 40px;
+      color: white;
+      margin-top: 0.5rem;
+      cursor: pointer;
+    }
+    .recent-orders {
+      background: white;
+      border-radius: 28px;
+      padding: 1.2rem;
+      margin-top: 2rem;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid #eee; }
+    .back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #e67e22;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.2s;
+    }
+    .back-to-top.show { opacity: 1; visibility: visible; }
+    .whatsapp-float {
+      position: fixed;
+      bottom: 2rem;
+      left: 2rem;
+      background: #25d366;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.6rem;
+      cursor: pointer;
+    }
+    .coupon-badge {
+      background: #ff6b35;
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 8px;
+    }
+    @media (max-width: 780px) {
+      .navbar { flex-direction: column; gap: 0.8rem; }
+      .hero h2 { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="navbar">
+    <div class="logo">
+      <h1>SPICY FOODS <i class="fas fa-pepper-hot"></i></h1>
+      <span>120+ Unique Burgers • Wings • Chicken • Curries</span>
+    </div>
+    <div class="nav-links">
+      <a class="nav-link active" data-page="home">Home</a>
+      <a class="nav-link" data-page="menu">Menu</a>
+      <a class="nav-link" data-page="combos">Combos</a>
+      <a class="nav-link" data-page="contact">Contact</a>
+      <a class="nav-link" data-page="admin" id="adminNavLink">Admin</a>
+      <div class="cart-icon" id="cartIcon">
+        <i class="fas fa-shopping-bag"></i>
+        <span class="cart-count" id="cartCount">0</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HOME -->
+  <div id="homePage" class="page-section active">
+    <section class="hero">
+      <h2>Bold Flavors. Fiery Spice. Pure Bliss.</h2>
+      <p>Over 120 handcrafted items • Secret spice blends • Fresh daily</p>
+      <div class="timer-bar">
+        <div class="timer-box"><span id="hours">00</span>h</div>
+        <div class="timer-box"><span id="minutes">00</span>m</div>
+        <div class="timer-box"><span id="seconds">00</span>s</div>
+        <span>🔥 Happy Hour ends in</span>
+      </div>
+      <button class="btn-primary" onclick="document.querySelector('[data-page=\'menu\']').click()">🔥 Explore Menu</button>
+    </section>
+    <div class="section" style="padding: 2rem;">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-number" id="homeBurgers">0</div><div class="stat-label">Burgers Sold</div></div>
+        <div class="stat-card"><div class="stat-number" id="homeWings">0</div><div class="stat-label">Wings Served</div></div>
+        <div class="stat-card"><div class="stat-number" id="homeChicken">0</div><div class="stat-label">Chicken Buckets</div></div>
+        <div class="stat-card"><div class="stat-number" id="homeCurries">0</div><div class="stat-label">Curries Sold</div></div>
+        <div class="stat-card"><div class="stat-number" id="homeCustomers">0</div><div class="stat-label">Happy Customers</div></div>
+        <div class="stat-card"><div class="stat-number" id="homeRevenue">₹0</div><div class="stat-label">Revenue</div></div>
+      </div>
+    </div>
+    <div class="section"><h2 class="section-title">🔥 Today's Specials</h2><div id="featuredContainer" class="grid-cards"></div></div>
+    <div class="section"><h2 class="section-title">🎁 Special Offer</h2><div class="coupon-badge" style="display:inline-block; background:#e67e22; padding:0.5rem 1rem; border-radius:50px; margin-bottom:1rem;">Use code SPICY20 for 20% off!</div></div>
+    <div class="section"><h2 class="section-title">❤️ Guest Love</h2><div class="testi-grid"><div class="testi-card"><div class="stars">★★★★★</div><p>"The hottest wings in town! Perfect spice level. Must try!"</p><strong>- Rohan K.</strong></div><div class="testi-card"><div class="stars">★★★★★</div><p>"Butter chicken burger is a game changer. Amazing fusion!"</p><strong>- Anjali M.</strong></div><div class="testi-card"><div class="stars">★★★★½</div><p>"Their fiery fried chicken bucket is better than KFC. Great value!"</p><strong>- Vikram S.</strong></div></div></div>
+  </div>
+
+  <!-- MENU (dynamic with 120+ unique items) -->
+  <div id="menuPage" class="page-section"><div class="section"><div id="menuGrid"></div></div></div>
+  <!-- COMBOS -->
+  <div id="combosPage" class="page-section"><div class="section"><div id="combosGrid" class="grid-cards"></div></div></div>
+  <!-- CONTACT -->
+  <div id="contactPage" class="page-section"><div class="section"><div class="contact-wrapper"><div class="contact-form"><h3><i class="fas fa-envelope"></i> Get in touch</h3><form id="contactForm"><input type="text" id="contactName" placeholder="Your name" required><input type="email" id="contactEmail" placeholder="Email" required><textarea rows="3" placeholder="Message..."></textarea><button type="submit" class="btn-primary">Send</button></form><button id="reserveTableBtn" class="btn-primary" style="margin-top:1rem;">📅 Reserve Table</button><button id="applyCouponBtn" class="btn-primary" style="margin-top:1rem; background:#ff6b35;">🎟️ Apply Coupon</button></div><div class="info-hours"><h3><i class="fas fa-clock"></i> Hours & Location</h3><p>📍 842 Flame Ave, NYC</p><p>Mon-Thu: 11:30am–11pm<br>Fri-Sun: 12pm–1am</p><p><i class="fas fa-phone"></i> +1 (555) 228-9425</p><p><i class="fas fa-truck"></i> Free delivery over ₹1500</p></div></div></div></div>
+  <!-- ADMIN (protected) -->
+  <div id="adminPage" class="page-section"><div class="section"><h2 class="section-title">📊 Admin Dashboard</h2><div class="admin-stats"><div class="admin-card"><h3>🍔 Burgers Sold</h3><div class="value" id="adminBurgers">0</div><button class="edit-btn" data-field="burgersSold">Edit</button></div><div class="admin-card"><h3>🍗 Wings Served</h3><div class="value" id="adminWings">0</div><button class="edit-btn" data-field="wingsServed">Edit</button></div><div class="admin-card"><h3>🍗 Chicken Buckets</h3><div class="value" id="adminChicken">0</div><button class="edit-btn" data-field="chickenBuckets">Edit</button></div><div class="admin-card"><h3>🍛 Curries Sold</h3><div class="value" id="adminCurries">0</div><button class="edit-btn" data-field="curriesSold">Edit</button></div><div class="admin-card"><h3>😊 Happy Customers</h3><div class="value" id="adminCustomers">0</div><button class="edit-btn" data-field="happyCustomers">Edit</button></div><div class="admin-card"><h3>💰 Revenue (₹)</h3><div class="value" id="adminRevenue">0</div><button class="edit-btn" data-field="revenue">Edit</button></div></div><div class="admin-card"><h3>📈 Weekly Revenue</h3><canvas id="revenueChart" width="400" height="200"></canvas></div><div class="recent-orders"><h3>🕒 Recent Orders</h3><table id="ordersTable"><thead><tr><th>Order ID</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody><tr><td colspan="3">No orders yet</td></tr></tbody></table><button id="resetStatsBtn" class="btn-primary" style="margin-top:1rem;">Reset Demo Data</button></div></div></div>
+</main>
+
+<footer class="footer"><div class="social-icons"><a href="#"><i class="fab fa-instagram"></i></a><a href="#"><i class="fab fa-facebook"></i></a><a href="#"><i class="fab fa-twitter"></i></a></div><div class="newsletter"><input type="email" id="newsEmail" placeholder="Email for offers"><button id="newsBtn" class="btn-primary">Subscribe</button></div><p>© 2025 Spicy Foods – 120+ Unique Burgers, Wings, Chicken & Curries</p></footer>
+
+<div class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></div>
+<div class="whatsapp-float" id="whatsappBtn"><i class="fab fa-whatsapp"></i></div>
+
+<!-- Cart Modal -->
+<div id="cartModal" class="modal"><div class="modal-content"><div class="modal-header"><span>Your Cart 🛒</span><span id="closeModalBtn">&times;</span></div><div id="cartItemsList"></div><div class="total-row"><span>Total:</span><span id="cartTotalPrice">₹0</span></div><div class="total-row" style="font-size:1rem;"><span>Coupon Discount:</span><span id="discountAmount">₹0</span></div><div class="total-row" style="border-top:2px solid #e67e22; padding-top:10px;"><span>Final Total:</span><span id="finalTotal">₹0</span></div><button id="checkoutBtn" class="checkout-btn">Checkout (demo)</button><button id="clearCartBtn" style="margin-top:12px; background:#eee; border:none; border-radius:40px; padding:8px; width:100%;">Clear cart</button></div></div>
+
+<!-- Admin Login Modal -->
+<div id="adminLoginModal" class="login-modal" style="display: none;">
+  <div class="login-box">
+    <h2><i class="fas fa-lock"></i> Admin Login</h2>
+    <input type="text" id="loginUsername" placeholder="Username" autocomplete="off">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button id="loginBtn" class="btn-primary">Login <i class="fas fa-arrow-right"></i></button>
+    <div id="loginError" class="error-msg"></div>
+  </div>
+</div>
+
+<script>
+  // ======================== RELIABLE IMAGES (STATIC UNSPLASH + FALLBACK) ========================
+  const imageList = [
+    "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format",
+    "https://images.unsplash.com/photo-1553979459-d2229ba7433a?w=400&auto=format",
+    "https://images.unsplash.com/photo-1551782450-17144efb9c50?w=400&auto=format",
+    "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=400&auto=format",
+    "https://images.unsplash.com/photo-1608030830072-0c3cddb0ae10?w=400&auto=format",
+    "https://images.unsplash.com/photo-1527477396000-e27163b9d3c9?w=400&auto=format",
+    "https://images.unsplash.com/photo-1523895665936-7bfe172b755d?w=400&auto=format",
+    "https://images.unsplash.com/photo-1630384060421-cb20f6e2b2d3?w=400&auto=format",
+    "https://images.unsplash.com/photo-1639024471283-ec188ed3f0bc?w=400&auto=format",
+    "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=400&auto=format",
+    "https://images.unsplash.com/photo-1606755962773-d3247c5a3b0c?w=400&auto=format",
+    "https://images.unsplash.com/photo-1529718947843-48c78b4f3724?w=400&auto=format",
+    "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400&auto=format",
+    "https://images.unsplash.com/photo-1562967916-eb82221dfb92?w=400&auto=format",
+    "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=400&auto=format",
+    "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&auto=format"
+  ];
+
+  // Helper to get random image from list
+  function getImage(idx) { return imageList[idx % imageList.length]; }
+
+  // BURGERS - 30 unique spicy burgers
+  const burgerNames = [
+    "Firecracker Burger", "Ghost Pepper Smash", "Tandoori Paneer Burger", "Peri-Peri Chicken Burger",
+    "Crispy Bhaji Burger", "Butter Chicken Burger", "Spicy Lamb Burger", "Jalapeño Popper Burger",
+    "Mexican Salsa Burger", "Chipotle Black Bean Burger", "Naga Chilli Burger", "Cheese Explosion Burger",
+    "Double Decker Spicy", "Mushroom Swiss Burger", "BBQ Bacon Blast", "Sriracha Crunch Burger",
+    "Curry Masala Burger", "Falafel Spicy Burger", "Pulled Spicy Pork", "Harissa Chicken Burger",
+    "Kimchi Beef Burger", "Mango Habanero", "Red Hot Chili Burger", "Smoked Paprika Burger", "Volcano Melt Burger",
+    "Cajun Chicken Burger", "Honey Sriracha Burger", "Buffalo Blue Cheese Burger", "Thai Peanut Burger", "Masala Veg Burger"
+  ];
+  let burgers = burgerNames.map((name, idx) => ({
+    id: `burger_${idx}`, name: name, price: 350 + (idx % 5) * 30,
+    img: getImage(idx), desc: "Juicy patty with secret spicy sauce and fresh veggies."
+  }));
+
+  // WINGS - 35 unique wing flavors
+  const wingNames = [
+    "Atomic Buffalo", "Honey Sriracha", "Garlic Parmesan Fire", "Lemon Pepper Blast",
+    "Mango Habanero", "Spicy Korean BBQ", "Cajun Dry Rub", "Thai Sweet Chilli",
+    "Peri-Peri Flame", "Tandoori Wings", "Naga Morich", "Jerk Spiced Wings",
+    "Chipotle Maple", "Ghost Pepper Dust", "Schezwan Wings", "Butter Garlic Spice",
+    "Smoked Paprika", "Lime & Cilantro", "Spicy Miso Glaze", "Harissa Honey",
+    "Wasabi Sesame", "Curry Yogurt", "Piri Piri Lemon", "Spicy Bourbon",
+    "Blackened Ranch", "Dragon Fire", "Volcano Wings", "Carolina Reaper", "Spicy Teriyaki", "Flaming Cheeto",
+    "Lemon Garlic", "BBQ Dry Rub", "Sweet Chili Lime", "Spicy Honey Mustard", "Coconut Curry Wings"
+  ];
+  let wings = wingNames.map((name, idx) => ({
+    id: `wing_${idx}`, name: name, price: 280 + (idx % 5) * 20,
+    img: getImage(idx+30), desc: "Crispy, juicy, tossed in our signature spice blend."
+  }));
+
+  // FRIED CHICKEN - 25 unique items
+  const chickenNames = [
+    "Crispy Fried Chicken (2 pcs)", "Spicy Chicken Bucket (6 pcs)", "Fiery Popcorn Chicken",
+    "Tandoori Fried Chicken", "Peri-Peri Chicken Leg", "Ghost Pepper Chicken Strip",
+    "Nuggets Dynamite", "Chicken Popcorn Masala", "Spicy Chicken Tenders (3 pcs)",
+    "BBQ Glazed Fried Chicken", "Schezwan Fried Chicken", "Lemon Pepper Chicken",
+    "Cajun Fried Chicken", "Honey Chilli Chicken", "Garlic Butter Chicken",
+    "Mango Habanero Chicken", "Smoky Chipotle Chicken", "Curry Crunch Chicken",
+    "Jalapeño Cheddar Chicken", "Volcano Fried Chicken", "Buttermilk Crispy Chicken",
+    "Spicy Korean Fried Chicken", "Cheesy Chicken Popcorn", "Herb Crusted Chicken", "Fiery Chicken Lollipop"
+  ];
+  let friedChicken = chickenNames.map((name, idx) => ({
+    id: `chicken_${idx}`, name: name, price: 320 + (idx % 6) * 40,
+    img: getImage(idx+65), desc: "Crispy outside, tender inside – our signature fried chicken."
+  }));
+
+  // INDIAN CURRIES - 20 items
+  const curryNames = [
+    "Butter Chicken", "Paneer Tikka Masala", "Spicy Lamb Rogan Josh", "Chicken Chettinad",
+    "Dal Makhani (Spicy)", "Fish Curry Kerala Style", "Egg Curry (Anda Masala)",
+    "Mutton Pepper Fry", "Veg Kolhapuri", "Chicken Tikka Masala", "Prawn Curry",
+    "Soya Chaap Masala", "Kadai Chicken", "Bhuna Gosht", "Mushroom Matar",
+    "Palak Paneer", "Chana Masala", "Chicken Vindaloo", "Goan Fish Curry", "Nihari"
+  ];
+  let curries = curryNames.map((name, idx) => ({
+    id: `curry_${idx}`, name: name, price: 250 + (idx % 5) * 40,
+    img: getImage(idx+90), desc: "Authentic Indian spices, served with rice/roti."
+  }));
+
+  // SIDES - 20 items
+  const sideNames = [
+    "Loaded Cheese Fries", "Spicy Onion Rings", "Garlic Naan", "Butter Naan",
+    "Steamed Rice", "Jalapeño Poppers", "Masala Fries", "Peri-Peri Fries",
+    "Cheesy Garlic Bread", "Spicy Corn on the Cob", "Coleslaw (Spicy)", "Mint Chutney",
+    "Tamarind Dip", "House Salad", "Fried Pickles", "Breadsticks", "Spicy Wedges",
+    "Cheese Balls", "Stuffed Mushrooms", "Hummus with Pita"
+  ];
+  let sides = sideNames.map((name, idx) => ({
+    id: `side_${idx}`, name: name, price: 120 + (idx % 4) * 30,
+    img: getImage(idx+110), desc: "Perfect accompaniment to your meal."
+  }));
+
+  // COMBOS - 15 combos
+  const comboData = [
+    { name: "🔥 Blazing Duo", price: 699, desc: "1 Spicy Burger + 6pc Wings + Fries + Drink", img: getImage(1) },
+    { name: "🍗 Chicken Lover's Bucket", price: 899, desc: "10pc Fried Chicken + 2 Dips + Fries", img: getImage(2) },
+    { name: "🍔 Family Feast", price: 1299, desc: "2 Burgers + 12 Wings + 2 Sides + 2 Drinks", img: getImage(3) },
+    { name: "🌶️ Indian Spice Box", price: 749, desc: "Butter Chicken + Naan + Rice + Soft Drink", img: getImage(4) },
+    { name: "🍔🔥 Burger Festival", price: 549, desc: "2 Smash Burgers + Loaded Fries", img: getImage(5) },
+    { name: "🍗 Wing Bucket Party", price: 649, desc: "16 Wings (mix any 2 flavors) + Dip", img: getImage(6) },
+    { name: "🥘 Curry Combo", price: 599, desc: "Any Curry + Rice + Naan", img: getImage(7) },
+    { name: "🍔🍗 Date Night", price: 999, desc: "1 Burger + 6 Wings + 2 Drinks + Dessert", img: getImage(8) },
+    { name: "🔥 Mega Spicy Box", price: 1499, desc: "2 Burgers + 12 Wings + 6pc Chicken + 2 Sides", img: getImage(9) },
+    { name: "🌿 Veg Delight", price: 549, desc: "Veg Burger + Paneer Tikka + Fries", img: getImage(10) },
+    { name: "🍟 Snack Attack", price: 399, desc: "Popcorn Chicken + Onion Rings + Fries", img: getImage(11) },
+    { name: "🥤 Student Special", price: 449, desc: "Burger + Fries + Soft Drink", img: getImage(12) },
+    { name: "🍗🍔 Double Trouble", price: 799, desc: "1 Burger + 8 Wings + 1 Side", img: getImage(13) },
+    { name: "🌶️ Extreme Heat Challenge", price: 1199, desc: "Ghost Pepper Burger + 12 Atomic Wings + Drink", img: getImage(14) },
+    { name: "👨‍👩‍👧‍👦 Family Bucket", price: 1799, desc: "4 Burgers + 20 Wings + 2 Large Fries + 4 Drinks", img: getImage(15) }
+  ];
+  let combos = comboData.map((c, idx) => ({ ...c, id: `combo_${idx}` }));
+
+  // Cart, coupon, etc.
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  let stats = JSON.parse(localStorage.getItem('adminStats')) || {
+    burgersSold: 5284, wingsServed: 7512, chickenBuckets: 3120, curriesSold: 1890,
+    happyCustomers: 8240, revenue: 585800
+  };
+  let adminLoggedIn = false;
+  let couponApplied = false;
+  let discountPercent = 0;
+
+  function updateCartCountUI() {
+    const total = cart.reduce((s,i)=>s+i.quantity,0);
+    document.getElementById('cartCount').innerText = total;
+  }
+  function saveCart() { localStorage.setItem('cart', JSON.stringify(cart)); updateCartCountUI(); renderCartModal(); }
+  function addToCart(id, name, price) {
+    let existing = cart.find(i=>i.id===id);
+    if(existing) existing.quantity++;
+    else cart.push({ id, name, price, quantity:1 });
+    saveCart();
+    showToast('✓ Added to cart');
+  }
+  function showToast(msg) {
+    let t = document.createElement('div');
+    t.innerText = msg; t.style.cssText = 'position:fixed; bottom:20px; left:20px; background:#e67e22; color:white; padding:8px 20px; border-radius:40px; z-index:999;';
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(),1200);
+  }
+  function calculateTotalWithDiscount() {
+    let subtotal = cart.reduce((s,i)=>s + i.price*i.quantity, 0);
+    let discount = couponApplied ? Math.floor(subtotal * discountPercent / 100) : 0;
+    return { subtotal, discount, final: subtotal - discount };
+  }
+  function renderCartModal() {
+    let container = document.getElementById('cartItemsList');
+    if(!container) return;
+    if(cart.length===0) { container.innerHTML='<p style="text-align:center;">Cart empty</p>'; document.getElementById('cartTotalPrice').innerText='₹0'; document.getElementById('discountAmount').innerText='₹0'; document.getElementById('finalTotal').innerText='₹0'; return; }
+    let html='', subtotal=0;
+    cart.forEach((item,idx)=>{
+      let sub = item.price*item.quantity;
+      subtotal+=sub;
+      html+=`<div class="cart-item"><div><strong>${item.name}</strong><br>₹${item.price}</div><div class="cart-qty"><button class="qty-btn" data-idx="${idx}" data-op="decr">-</button><span style="margin:0 8px;">${item.quantity}</span><button class="qty-btn" data-idx="${idx}" data-op="incr">+</button><button class="qty-btn" data-idx="${idx}" data-op="remove"><i class="fas fa-trash"></i></button></div><div>₹${sub}</div></div>`;
+    });
+    container.innerHTML = html;
+    let discount = couponApplied ? Math.floor(subtotal * discountPercent / 100) : 0;
+    document.getElementById('cartTotalPrice').innerText = `₹${subtotal}`;
+    document.getElementById('discountAmount').innerText = `₹${discount}`;
+    document.getElementById('finalTotal').innerText = `₹${subtotal - discount}`;
+    document.querySelectorAll('.qty-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        let idx = parseInt(btn.dataset.idx);
+        let op = btn.dataset.op;
+        if(op==='incr') cart[idx].quantity++;
+        else if(op==='decr') { if(cart[idx].quantity>1) cart[idx].quantity--; else cart.splice(idx,1); }
+        else if(op==='remove') cart.splice(idx,1);
+        saveCart(); renderCartModal();
+      });
+    });
+  }
+  function clearCart() { cart=[]; saveCart(); renderCartModal(); }
+
+  // Apply coupon
+  function applyCoupon() {
+    let code = prompt("Enter coupon code:", "SPICY20");
+    if(code && code.toUpperCase() === "SPICY20") {
+      couponApplied = true;
+      discountPercent = 20;
+      showToast("🎉 20% discount applied!");
+      renderCartModal();
+    } else if(code) {
+      alert("Invalid coupon code! Try SPICY20");
+    }
+  }
+
+  // Render full menu
+  function renderFullMenu() {
+    const container = document.getElementById('menuGrid');
+    if(!container) return;
+    container.innerHTML = '';
+    const sections = [
+      { title: "🍔 Signature Spicy Burgers (30+)", items: burgers },
+      { title: "🍗 Fiery Wings (35+ Flavors)", items: wings },
+      { title: "🍗 Crispy Fried Chicken (25+)", items: friedChicken },
+      { title: "🍛 Indian Curries & Rice (20+)", items: curries },
+      { title: "🍟 Loaded Sides & Breads (20+)", items: sides }
+    ];
+    sections.forEach(section => {
+      let titleDiv = document.createElement('h2');
+      titleDiv.className = 'section-title';
+      titleDiv.style.marginTop = '2rem';
+      titleDiv.innerText = section.title;
+      container.appendChild(titleDiv);
+      let grid = document.createElement('div');
+      grid.className = 'grid-cards';
+      section.items.forEach(item => {
+        let card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <img src="${item.img}" class="card-img" loading="lazy" onerror="this.src='https://placehold.co/400x300?text=Spicy+Food'">
+          <div class="card-content">
+            <div class="card-title"><span>${item.name}</span><span class="price">₹${item.price}</span></div>
+            <div class="desc">${item.desc}</div>
+            <button class="btn-add" data-id="${item.id}" data-name="${item.name}" data-price="${item.price}">Add to cart</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
+      setTimeout(()=>{
+        grid.querySelectorAll('.btn-add').forEach(btn=>{
+          btn.addEventListener('click',()=> addToCart(btn.dataset.id, btn.dataset.name, parseInt(btn.dataset.price)));
+        });
+      },0);
+    });
+  }
+
+  function renderCombos() {
+    const container = document.getElementById('combosGrid');
+    if(!container) return;
+    container.innerHTML = '';
+    combos.forEach(combo=>{
+      let card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img src="${combo.img}" class="card-img" loading="lazy" onerror="this.src='https://placehold.co/400x300?text=Spicy+Combo'">
+        <div class="card-content">
+          <div class="card-title"><span>${combo.name}</span><span class="price">₹${combo.price}</span></div>
+          <div class="desc">${combo.desc}</div>
+          <button class="btn-add" data-id="${combo.id}" data-name="${combo.name}" data-price="${combo.price}">Add to cart</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+    container.querySelectorAll('.btn-add').forEach(btn=>{
+      btn.addEventListener('click',()=> addToCart(btn.dataset.id, btn.dataset.name, parseInt(btn.dataset.price)));
+    });
+  }
+
+  function renderFeatured() {
+    let featured = burgers.slice(0,2).concat(wings.slice(0,1)).concat(friedChicken.slice(0,1)).concat(curries.slice(0,1));
+    const container = document.getElementById('featuredContainer');
+    if(!container) return;
+    container.innerHTML = '';
+    featured.forEach(item=>{
+      let card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img src="${item.img}" class="card-img" loading="lazy" onerror="this.src='https://placehold.co/400x300?text=Spicy+Food'">
+        <div class="card-content">
+          <div class="card-title"><span>${item.name}</span><span class="price">₹${item.price}</span></div>
+          <div class="desc">${item.desc}</div>
+          <button class="btn-add" data-id="${item.id}" data-name="${item.name}" data-price="${item.price}">Add to cart</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+    container.querySelectorAll('.btn-add').forEach(btn=>{
+      btn.addEventListener('click',()=> addToCart(btn.dataset.id, btn.dataset.name, parseInt(btn.dataset.price)));
+    });
+  }
+
+  function updateAdminUI() {
+    document.getElementById('adminBurgers').innerText = stats.burgersSold;
+    document.getElementById('adminWings').innerText = stats.wingsServed;
+    document.getElementById('adminChicken').innerText = stats.chickenBuckets;
+    document.getElementById('adminCurries').innerText = stats.curriesSold;
+    document.getElementById('adminCustomers').innerText = stats.happyCustomers;
+    document.getElementById('adminRevenue').innerText = stats.revenue;
+    localStorage.setItem('adminStats', JSON.stringify(stats));
+    document.getElementById('homeBurgers').innerText = stats.burgersSold;
+    document.getElementById('homeWings').innerText = stats.wingsServed;
+    document.getElementById('homeChicken').innerText = stats.chickenBuckets;
+    document.getElementById('homeCurries').innerText = stats.curriesSold;
+    document.getElementById('homeCustomers').innerText = stats.happyCustomers;
+    document.getElementById('homeRevenue').innerText = '₹' + stats.revenue;
+  }
+
+  const pages = { home:document.getElementById('homePage'), menu:document.getElementById('menuPage'), combos:document.getElementById('combosPage'), contact:document.getElementById('contactPage'), admin:document.getElementById('adminPage') };
+  function showPage(pageName) {
+    Object.values(pages).forEach(p=>p.classList.remove('active'));
+    pages[pageName].classList.add('active');
+    document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+    document.querySelector(`[data-page="${pageName}"]`).classList.add('active');
+    if(pageName==='admin') { if(window.revenueChart) window.revenueChart.destroy(); initRevenueChart(); }
+    if(pageName==='menu') renderFullMenu();
+    if(pageName==='combos') renderCombos();
+  }
+
+  document.querySelectorAll('.nav-link').forEach(link=>{
+    link.addEventListener('click',()=>{
+      let page = link.dataset.page;
+      if(page === 'admin') {
+        if(!adminLoggedIn) { document.getElementById('adminLoginModal').style.display = 'flex'; return; }
+      }
+      showPage(page);
+    });
+  });
+
+  document.getElementById('loginBtn').addEventListener('click', () => {
+    const user = document.getElementById('loginUsername').value;
+    const pass = document.getElementById('loginPassword').value;
+    if(user === 'admin' && pass === 'flame123') {
+      adminLoggedIn = true;
+      document.getElementById('adminLoginModal').style.display = 'none';
+      showPage('admin');
+      document.getElementById('loginError').innerText = '';
+    } else {
+      document.getElementById('loginError').innerText = 'Invalid credentials! Use admin / flame123';
+    }
+  });
+  document.getElementById('adminLoginModal').addEventListener('click', (e) => { if(e.target === document.getElementById('adminLoginModal')) document.getElementById('adminLoginModal').style.display = 'none'; });
+
+  let revenueChart;
+  function initRevenueChart() {
+    let ctx = document.getElementById('revenueChart').getContext('2d');
+    revenueChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ label: 'Revenue (₹)', data: [125000,148000,170000,210000,280000,345000,398000], borderColor: '#e67e22', tension:0.3, fill:false }] },
+      options: { responsive: true }
+    });
+  }
+
+  function updateTimer() {
+    let now = new Date();
+    let target = new Date(); target.setHours(19,0,0,0);
+    if(now>=target) target.setDate(target.getDate()+1);
+    let diff = Math.floor((target-now)/1000);
+    if(diff<0) diff=0;
+    document.getElementById('hours').innerText = String(Math.floor(diff/3600)).padStart(2,'0');
+    document.getElementById('minutes').innerText = String(Math.floor((diff%3600)/60)).padStart(2,'0');
+    document.getElementById('seconds').innerText = String(diff%60).padStart(2,'0');
+  }
+  setInterval(updateTimer,1000); updateTimer();
+
+  // Event listeners
+  document.getElementById('cartIcon').addEventListener('click',()=>{ renderCartModal(); document.getElementById('cartModal').style.display='flex'; });
+  document.getElementById('closeModalBtn').addEventListener('click',()=>document.getElementById('cartModal').style.display='none');
+  window.addEventListener('click',(e)=>{ if(e.target===document.getElementById('cartModal')) document.getElementById('cartModal').style.display='none'; });
+  document.getElementById('checkoutBtn').addEventListener('click',()=>{
+    if(cart.length===0) alert('Cart empty');
+    else { 
+      let { final } = calculateTotalWithDiscount();
+      alert(`✅ Order placed! Total ₹${final}\nThank you for choosing Spicy Foods!`);
+      cart=[]; couponApplied=false; discountPercent=0;
+      saveCart(); renderCartModal(); document.getElementById('cartModal').style.display='none';
+    }
+  });
+  document.getElementById('clearCartBtn').addEventListener('click',()=>{ clearCart(); renderCartModal(); });
+  document.getElementById('applyCouponBtn').addEventListener('click',()=>applyCoupon());
+  document.querySelectorAll('.edit-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      let field = btn.dataset.field;
+      let newVal = prompt(`Enter new value for ${field}:`, stats[field]);
+      if(newVal && !isNaN(parseFloat(newVal))) { stats[field]=parseFloat(newVal); updateAdminUI(); }
+    });
+  });
+  document.getElementById('resetStatsBtn').addEventListener('click',()=>{ stats={burgersSold:5284, wingsServed:7512, chickenBuckets:3120, curriesSold:1890, happyCustomers:8240, revenue:585800}; updateAdminUI(); alert('Stats reset'); });
+  document.getElementById('contactForm').addEventListener('submit',(e)=>{ e.preventDefault(); alert(`Thanks ${document.getElementById('contactName').value}, we'll reply soon!`); e.target.reset(); });
+  document.getElementById('reserveTableBtn').addEventListener('click',()=>{ let name=prompt("Your name:"); if(name) alert(`✅ Table reserved for ${name}!`); });
+  document.getElementById('newsBtn').addEventListener('click',()=>{ let email=document.getElementById('newsEmail').value.trim(); if(email) alert(`📧 ${email} subscribed!`); else alert('Enter email'); });
+  document.getElementById('whatsappBtn').addEventListener('click',()=>window.open('https://wa.me/919876543210?text=Hello%20Spicy%20Foods%20I%20want%20to%20order','_blank'));
+  window.addEventListener('scroll',()=>{ let btn=document.getElementById('backToTop'); if(window.scrollY>300) btn.classList.add('show'); else btn.classList.remove('show'); });
+  document.getElementById('backToTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+  // Initial renders
+  renderFullMenu();
+  renderCombos();
+  renderFeatured();
+  updateAdminUI();
+  updateCartCountUI();
+  renderCartModal();
+  initRevenueChart();
+</script>
+</body>
+</html>
+```
